@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "right-rescue")(type "KiCad")(uri "${KIPRJMOD}/right-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "kbd")(type "Legacy")(uri "${KIPRJMOD}/../kbd/library/kbd.lib")(options "")(descr ""))
+)

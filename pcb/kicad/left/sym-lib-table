@@ -1,3 +1,6 @@
 (sym_lib_table
-  (lib (name left-rescue)(type Legacy)(uri ${KIPRJMOD}/left-rescue.lib)(options "")(descr ""))
+  (version 7)
+  (lib (name "left-rescue")(type "KiCad")(uri "${KIPRJMOD}/left-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "right-rescue")(type "KiCad")(uri "/home/joshua/repos/keyseebee/pcb/kicad/right/right-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "kbd")(type "Legacy")(uri "/home/joshua/repos/keyseebee/pcb/kicad/right/kbd.lib")(options "")(descr ""))
 )
