@@ -18,25 +18,23 @@ screw_hole_diameter = 1.75;
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
 rim_height = 5;
-case_width = 3;
+case_width = 5;
 case_pcb_tolerance = 1;
 bottom_thickness = 5;
 // Below the pcb, pcb+components on back (1.6+2ish)=4ish + 5 for bottom plate = 9
 case_depth = 4+bottom_thickness;
 usb_thickness = 8;
 
-!render() scale([is_right?-1:1,1,1]) difference() {
+module complete_top(){ scale([is_right?-1:1,1,1]) difference() {
     union() {
-        linear_extrude(plate_thickness) offset(delta=2) difference() {pcb_outline(); key_holes();}; // keyswitches
-        if (!is_plate) {
+        linear_extrude(plate_thickness) difference() {offset(delta=2) pcb_outline(); key_holes();}; // keyswitches
         // Rim
-          %translate([0,0,-rim_height]) linear_extrude(rim_height+plate_thickness) rim_placement();
-          // Bottom rim to the bottom plate
-          %translate([0,0,plate_thickness]) linear_extrude(case_depth) difference() {
-            fill() rim_placement();
-            offset(delta=-case_width) fill() rim_placement();
-          }
-        }
+        translate([0,0,-rim_height]) linear_extrude(rim_height+plate_thickness) rim_placement();
+        // Bottom rim to the bottom plate
+        //translate([0,0,plate_thickness]) linear_extrude(case_depth) difference() {
+        //  fill() rim_placement();
+        //  offset(delta=-case_width) fill() rim_placement();
+        //}
     }
     if (is_plate) {
       //cut outside the rim
@@ -45,6 +43,25 @@ usb_thickness = 8;
       
     }
     all_holes();
+}
+}
+
+//render() just_plate();
+//render() difference() {
+//  complete_top();
+//  scale(1.01) just_plate();
+//}
+complete_top();
+
+module just_plate() {
+  difference() {
+    linear_extrude(plate_thickness) difference() {
+      pcb_outline();
+      key_holes();
+      //rim_placement();
+    }
+    all_holes();
+  }
 }
 
 module all_holes() {
