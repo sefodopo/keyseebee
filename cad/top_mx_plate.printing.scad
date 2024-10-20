@@ -25,6 +25,27 @@ bottom_thickness = 5;
 case_depth = 4+bottom_thickness;
 usb_thickness = 8;
 
+// Top level modules
+module real_plate() {
+  difference() {
+    linear_extrude(plate_thickness) offset(delta=1) plate_outline();
+    translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
+    translate([0,0,switch_snapping]) linear_extrude(plate_thickness) key_holes(15);
+    translate([0,0,-0.001]) plate_screw_placement() {
+      cylinder(h=screw_depth+0.001,d=screw_hole_diameter);
+      cylinder(h=0.4+0.001,d1=2.5,d2=2);
+    };
+  }
+}
+!#real_plate();
+
+// Top level 2d modules
+module plate_outline() {
+  offset(delta=1.3) key_holes(19.05);
+}
+
+!offset(delta=-1) plate_outline();
+
 module complete_top(){ scale([is_right?-1:1,1,1]) difference() {
     union() {
         linear_extrude(plate_thickness) difference() {offset(delta=2) pcb_outline(); key_holes();}; // keyswitches
@@ -93,7 +114,7 @@ module key_holes(size=switch_hole) {
     key_placement() square(size, center=true);
 }
 
-module screw_placement() {
+module plate_screw_placement() {
     if (is_right) {
         translate([-9.135,9.065]) children();
         translate([-21.035,-42.035]) children();
@@ -108,8 +129,8 @@ module screw_placement() {
 }
 
 module screw_holes() {
-    translate([0,0,plate_thickness-screw_depth]) screw_placement() cylinder(d=screw_hole_diameter, h=screw_depth);
-    translate([0,0,plate_thickness-chamfer_depth]) screw_placement() cylinder(d1=screw_hole_diameter, d2=screw_hole_diameter+0.2, h=chamfer_depth);
+    translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() cylinder(d=screw_hole_diameter, h=screw_depth);
+    translate([0,0,plate_thickness-chamfer_depth]) plate_screw_placement() cylinder(d1=screw_hole_diameter, d2=screw_hole_diameter+0.2, h=chamfer_depth);
 }
 
 module encoder_placement() {
