@@ -59,7 +59,7 @@ module real_plate() {
   difference() {
     linear_extrude(plate_thickness-0.08) offset(delta=plate_inset) plate_outline_interconnect();
     translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
-    translate([0,0,switch_snapping]) linear_extrude(plate_thickness) key_holes(15);
+    translate([0,0,switch_snapping]) linear_extrude(plate_thickness+0.001) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
       screw_hole();
     };
@@ -77,9 +77,14 @@ module rims() {
         offset(delta=-case_width) fill() rim_placement();
       }
   }
+  // We go from top to bottom which is actually bottom to top since the model is flipped :)
   difference() {
     union() {
-      translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) rim_placement(); // Might need a height tolerance?
+      translate([0,0,-rim_height]) difference() {
+        chamfer_extrude(height=rim_height+0.001, chamfer=2, faces="bottom") rim_outline();
+        translate([0,0,-0.001]) linear_extrude(height=rim_height+0.002) offset(delta=-2+0.001) rim_outline();
+      }
+      translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) difference() {offset(delta=-2) rim_outline(); plate_outline();} // Might need a height tolerance?
       translate([0,0,-0.001]) linear_extrude(plate_thickness) difference() {
         rim_placement();
         offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
@@ -88,7 +93,7 @@ module rims() {
         rim_outline();
         offset(delta=-case_width) rim_outline();
       }
-      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(bottom_thickness+0.001) difference() {
+      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) chamfer_extrude(height=bottom_thickness+0.001, faces="top") difference() {
         rim_outline();
         offset(r=-case_width/2) rim_outline();
       }
