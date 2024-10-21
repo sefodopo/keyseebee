@@ -37,23 +37,27 @@ screw_head_diameter = 4;
 usb_thickness = 8;
 corner_radius = 3;
 
-if (part == "b")
-  bottom();
-else if (part == "t")
-  rims();
-else if (part == "p")
-  real_plate();
-else {
-  %bottom();
-  rims();
-  real_plate();
+module everything() {
+  if (part == "b")
+    bottom();
+  else if (part == "t")
+    rims();
+  else if (part == "p")
+    real_plate();
+  else {
+    %bottom();
+    rims();
+    real_plate();
+  }
 }
+
+scale([is_right?-1:1,1,1]) everything();
 
 
 // Top level modules
 module real_plate() {
   difference() {
-    linear_extrude(plate_thickness-0.08) offset(delta=plate_inset) plate_outline();
+    linear_extrude(plate_thickness-0.08) offset(delta=plate_inset) plate_outline_interconnect();
     translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
     translate([0,0,switch_snapping]) linear_extrude(plate_thickness) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
@@ -78,7 +82,7 @@ module rims() {
       translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) rim_placement(); // Might need a height tolerance?
       translate([0,0,-0.001]) linear_extrude(plate_thickness) difference() {
         rim_placement();
-        offset(delta=plate_inset+plate_case_tolerance) plate_outline();
+        offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
       }
       translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.001) difference() {
         rim_outline();
@@ -91,6 +95,9 @@ module rims() {
     }
     encoder_hole();
     smd_holes();
+    translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
+      screw_hole();
+    };
     // usb-c port
     translate([-34.29,22.225,plate_thickness-4.5]) linear_extrude(4.5) square([10.64,12], center=true);
     translate([-34.29,28+10,plate_thickness-2]) cube([12,20,usb_thickness], center=true);
@@ -122,6 +129,20 @@ module bottom() {
 module plate_outline() {
   // My keycaps are 18.3mm^2
   offset(delta=keycap_tolerance) key_holes(keycap_length);
+}
+
+module plate_outline_interconnect() {
+  plate_outline();
+  // Dovetails
+  d = keycap_length/2+keycap_tolerance+plate_inset;
+  translate([-19.05-d+0.001,4]) rotate(90) dovetail();
+  translate([76.2+d-0.001,-12.7]) rotate(-90) dovetail(h=1.3);
+  translate([28.575,-38.1-d+0.001]) rotate(180) dovetail(w=7,h=1.3);
+  translate([38.1,19.05+d-0.001]) dovetail(w=4,h=1.4);
+}
+
+module dovetail(w=10,h=2) {
+  polygon([[-w/2,0], [-w/2-h,h], [w/2+h,h], [w/2,0]]);
 }
 
 module pcb_outline() {
@@ -200,9 +221,9 @@ module all_holes() {
 
 module encoder_hole() {
     encoder_placement() {
-        translate([0,0,plate_thickness-3]) linear_extrude(3+0.001) square([18.5,15.2], center=true);
-        translate([0,0,plate_thickness-7]) linear_extrude(4+0.001) square([13,12.6],center=true);
-        translate([0,0,-rim_height]) linear_extrude(rim_height+plate_thickness-7+0.001) circle(d=7.5); // Circular shaft
+        translate([0,0,plate_thickness-3-0.001]) linear_extrude(3+0.002) square([18.5,15.2], center=true);
+        translate([0,0,plate_thickness-7-0.001]) linear_extrude(4+0.002) square([13,12.6],center=true);
+        translate([0,0,-rim_height-0.001]) linear_extrude(rim_height+plate_thickness-7+0.001) circle(d=7.5); // Circular shaft
     }
 }
 
