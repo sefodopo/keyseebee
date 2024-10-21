@@ -12,9 +12,9 @@ part = "a";
 
 // See functions.scad for more info
 switch_hole = 14;
-plate_thickness = 5; // set to 5
+plate_thickness = 5;
 switch_snapping = 1.5;
-plate_case_tolerance = 0.1;
+plate_case_tolerance = 0.03;
 plate_inset = 1;
 keycap_length = 18.3;
 keycap_tolerance = 0.5;
@@ -22,21 +22,23 @@ keycap_tolerance = 0.5;
 screw_hole_diameter = 1.85; 
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
-rim_height = 5;
+rim_height = 6;
 // Make sure to check dovetails when adjusting
 case_width = 3;
-case_pcb_tolerance = 0.5; // 0.5
+case_pcb_tolerance = 0.3;
 pcb_thickness = 1.6;
 bottom_thickness = 3;
 // Below the pcb, pcb+components on back (1.6+2ish)=4ish + 5 for bottom plate = 9
 case_depth = 4+bottom_thickness;
 // Depth of screw head for countersink I measured 1.2. Higher number to require shorter screws
-screw_head = 1.5;
-// 2.1 shrunk down to 2
-screw_outer_diameter = 2.3;
-screw_head_diameter = 4;
+screw_head = 4;
+// 2.1 shrunk down to 2 and 2.3 was still just barely tight
+screw_outer_diameter = 2.4;
+// 4 shrunk too much for my wider head screws
+screw_head_diameter = 4.5;
 usb_thickness = 8;
 corner_radius = 3;
+bottom_case_tolerance = plate_case_tolerance;
 
 module everything() {
   if (part == "b")
@@ -104,9 +106,7 @@ module rims() {
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
       screw_hole();
     };
-    // usb-c port
-    translate([-34.29,22.225,plate_thickness-4.5]) linear_extrude(4.5) square([10.64,12], center=true);
-    translate([-34.29,28+10,plate_thickness-2]) cube([12,20,usb_thickness], center=true);
+    usb_holes();
     // trrs port
     translate([-46.863,19.652,plate_thickness-6]) linear_extrude(6) square([7,15], center=true);
     translate([-46.863,26,plate_thickness-2.5]) rotate(-90, [1,0,0]) linear_extrude(20) circle(d=8);
@@ -118,11 +118,17 @@ module bottom() {
   start = plate_thickness+case_depth-bottom_thickness;
   end = plate_thickness+case_depth;
   difference() {
-    translate([0,0,start]) linear_extrude(bottom_thickness) 
-      offset(r=-case_width/2) offset(delta=-case_pcb_tolerance) rim_outline();
+    union() {
+      translate([0,0,start]) linear_extrude(bottom_thickness) 
+        offset(r=-case_width/2) offset(delta=-bottom_case_tolerance) rim_outline();
+      plate_screw_placement() {
+        translate([0,0,plate_thickness+bottom_case_tolerance]) cylinder(h=2+0.001,d=4);
+        translate([0,0,plate_thickness+bottom_case_tolerance+1.8-0.001]) cylinder(h=start-plate_thickness-bottom_case_tolerance+0.001, d1=4, d2=10);
+      }
+    }
 
     plate_screw_placement() {
-      translate([0,0,start-0.001]) cylinder(h=bottom_thickness+0.002,d=screw_outer_diameter);
+      translate([0,0,start-4-0.001]) cylinder(h=bottom_thickness+4+0.002,d=screw_outer_diameter);
       translate([0,0,end-screw_head]) cylinder(h=screw_head+0.001,d=screw_head_diameter);
     }
   }
@@ -210,18 +216,7 @@ module smd_holes() {
 module usb_holes() {
   // usb-c port
   translate([-34.29,22.225,plate_thickness-4.5]) linear_extrude(5) square([10.64,12], center=true);
-  translate([-34.29,28+10,plate_thickness-3]) cube([12,20,usb_thickness], center=true);
-}
-
-module all_holes() {
-    translate([0,0,switch_snapping]) linear_extrude(plate_thickness-switch_snapping) key_placement() square(15, center=true);
-    usb_holes();
-    screw_holes();
-    encoder_hole();
-    smd_holes();
-    // trrs port
-    translate([-46.863,19.652,plate_thickness-6]) linear_extrude(6) square([7,15], center=true);
-    translate([-46.863,26,plate_thickness-2.5]) rotate(-90, [1,0,0]) linear_extrude(20) circle(d=8);
+  translate([-34.29,28+10,plate_thickness-2]) cube([12,20,usb_thickness], center=true);
 }
 
 module encoder_hole() {
