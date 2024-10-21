@@ -26,6 +26,10 @@ pcb_thickness = 1.6;
 bottom_thickness = 5;
 // Below the pcb, pcb+components on back (1.6+2ish)=4ish + 5 for bottom plate = 9
 case_depth = 4+bottom_thickness;
+// I measured 1.2
+screw_head = 2;
+screw_outer_diameter = 2.1;
+screw_head_diameter = 4;
 usb_thickness = 8;
 corner_radius = 3;
 
@@ -87,6 +91,22 @@ module rims() {
 }
 
 rims();
+
+module bottom() {
+  start = plate_thickness+case_depth-bottom_thickness;
+  end = plate_thickness+case_depth;
+  difference() {
+    translate([0,0,start]) linear_extrude(bottom_thickness) 
+      offset(r=0.95) offset(delta=case_pcb_tolerance-1) pcb_outline();
+
+    plate_screw_placement() {
+      translate([0,0,start-0.001]) cylinder(h=bottom_thickness+0.002,d=screw_outer_diameter);
+      translate([0,0,end-screw_head]) cylinder(h=screw_head+0.001,d=screw_head_diameter);
+    }
+  }
+}
+
+!bottom();
 
 // Top level 2d modules
 module plate_outline() {
