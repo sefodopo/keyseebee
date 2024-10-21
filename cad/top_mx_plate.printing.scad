@@ -2,7 +2,7 @@ use <functions.scad>
 
 // Change to large number when pruducing end result
 // 256 seems fine for production...
-$fn = 64;
+$fn = $preview ? 16 : 256;
 
 
 // Screws and Encoders are different on each side
@@ -23,7 +23,7 @@ screw_hole_diameter = 1.85;
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
 rim_height = 5;
-case_width = 5;
+case_width = 3;
 case_pcb_tolerance = 0.5; // 0.5
 pcb_thickness = 1.6;
 bottom_thickness = 3;
@@ -45,7 +45,7 @@ module everything() {
   else if (part == "p")
     real_plate();
   else {
-    %bottom();
+    bottom();
     rims();
     real_plate();
   }
@@ -93,7 +93,7 @@ module rims() {
         rim_outline();
         offset(delta=-case_width) rim_outline();
       }
-      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) chamfer_extrude(height=bottom_thickness+0.001, faces="top") difference() {
+      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(height=bottom_thickness+0.001) difference() {
         rim_outline();
         offset(r=-case_width/2) rim_outline();
       }
