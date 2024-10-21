@@ -16,6 +16,8 @@ plate_thickness = 5; // set to 5
 switch_snapping = 1.5;
 plate_case_tolerance = 0.1;
 plate_inset = 1;
+keycap_length = 18.3;
+keycap_tolerance = 0.5;
 // PCB is 4.3
 screw_hole_diameter = 1.85; 
 screw_depth = plate_thickness - switch_snapping-0.2;
@@ -24,11 +26,11 @@ rim_height = 5;
 case_width = 5;
 case_pcb_tolerance = 0.5; // 0.5
 pcb_thickness = 1.6;
-bottom_thickness = 5;
+bottom_thickness = 3;
 // Below the pcb, pcb+components on back (1.6+2ish)=4ish + 5 for bottom plate = 9
 case_depth = 4+bottom_thickness;
 // Depth of screw head for countersink I measured 1.2. Higher number to require shorter screws
-screw_head = 3.5;
+screw_head = 1.5;
 // 2.1 shrunk down to 2
 screw_outer_diameter = 2.3;
 screw_head_diameter = 4;
@@ -42,7 +44,7 @@ else if (part == "t")
 else if (part == "p")
   real_plate();
 else {
-  bottom();
+  %bottom();
   rims();
   real_plate();
 }
@@ -51,7 +53,7 @@ else {
 // Top level modules
 module real_plate() {
   difference() {
-    linear_extrude(plate_thickness) offset(delta=plate_inset) plate_outline();
+    linear_extrude(plate_thickness-0.08) offset(delta=plate_inset) plate_outline();
     translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
     translate([0,0,switch_snapping]) linear_extrude(plate_thickness) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
@@ -65,13 +67,26 @@ module real_plate() {
 
 
 module rims() {
+  module case_rims() {
+    difference() {
+        fill() rim_placement();
+        offset(delta=-case_width) fill() rim_placement();
+      }
+  }
   difference() {
     union() {
       translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) rim_placement(); // Might need a height tolerance?
-      translate([0,0,-0.001]) linear_extrude(plate_thickness) difference() {rim_placement(); offset(delta=plate_inset+plate_case_tolerance) plate_outline();}
-      translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth) difference() {
-        fill() rim_placement();
-        offset(delta=-case_width) fill() rim_placement();
+      translate([0,0,-0.001]) linear_extrude(plate_thickness) difference() {
+        rim_placement();
+        offset(delta=plate_inset+plate_case_tolerance) plate_outline();
+      }
+      translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.001) difference() {
+        rim_outline();
+        offset(delta=-case_width) rim_outline();
+      }
+      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(bottom_thickness+0.001) difference() {
+        rim_outline();
+        offset(r=-case_width/2) rim_outline();
       }
     }
     encoder_hole();
@@ -91,7 +106,7 @@ module bottom() {
   end = plate_thickness+case_depth;
   difference() {
     translate([0,0,start]) linear_extrude(bottom_thickness) 
-      offset(r=0.95) offset(delta=case_pcb_tolerance-1) pcb_outline();
+      offset(r=-case_width/2) offset(delta=-case_pcb_tolerance) rim_outline();
 
     plate_screw_placement() {
       translate([0,0,start-0.001]) cylinder(h=bottom_thickness+0.002,d=screw_outer_diameter);
@@ -103,8 +118,10 @@ module bottom() {
 
 // Top level 2d modules
 
+// The outline of the plate where the rims should start
 module plate_outline() {
-  offset(delta=1.3) key_holes(19.05);
+  // My keycaps are 18.3mm^2
+  offset(delta=keycap_tolerance) key_holes(keycap_length);
 }
 
 module pcb_outline() {
@@ -124,8 +141,7 @@ module rim_outline() {
 module rim_placement() {
     difference(){
         rim_outline();
-        // My keycaps are 18.3mm^2
-        offset(delta=1.3) key_holes(19.05);
+        plate_outline();
     }
 }
 
@@ -167,8 +183,8 @@ module smd_holes() {
 
 module usb_holes() {
   // usb-c port
-  translate([-34.29,22.225,plate_thickness-4.5]) linear_extrude(4.5) square([10.64,12], center=true);
-  translate([-34.29,28+10,plate_thickness-2]) cube([12,20,usb_thickness], center=true);
+  translate([-34.29,22.225,plate_thickness-4.5]) linear_extrude(5) square([10.64,12], center=true);
+  translate([-34.29,28+10,plate_thickness-3]) cube([12,20,usb_thickness], center=true);
 }
 
 module all_holes() {
