@@ -88,10 +88,18 @@ module rims() {
   difference() {
     union() {
       translate([0,0,-rim_height]) difference() {
-        chamfer_extrude(height=rim_height+0.001, chamfer=2, faces="bottom") rim_outline();
-        translate([0,0,-0.001]) linear_extrude(height=rim_height+0.002) offset(delta=-2+0.001) rim_outline();
+        radius = case_width+case_pcb_tolerance;
+        minkowski() {
+          linear_extrude(height=rim_height-radius+0.001) pcb_outline();
+          translate([0,0,radius]){
+            difference() { // semisphere
+              sphere(r=radius);
+              translate([0,0,radius+0.001]) cube(radius*2+0.002, center=true);
+            }
+          }
+        }
+        translate([0,0,-0.001]) linear_extrude(height=rim_height+0.003)plate_outline();
       }
-      translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) difference() {offset(delta=-2) rim_outline(); plate_outline();}
       translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) difference() {
         rim_placement();
         offset(delta=plate_inset+plate_case_tolerance) {
