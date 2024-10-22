@@ -19,7 +19,7 @@ plate_inset = 1;
 keycap_length = 18.3;
 keycap_tolerance = 0.5;
 // PCB is 4.3
-screw_hole_diameter = 1.8; 
+screw_hole_diameter = 3.2; 
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
 rim_height = 6;
@@ -165,6 +165,10 @@ module plate_outline_interconnect() {
   translate([-19.05-d+0.001,0]) rotate(90) dovetail(w=17);
   translate([57.15-6,-29.21-d+0.001]) rotate(180) dovetail(w=8,h=2);
   translate([57.15+2,8.89+d-0.001]) dovetail(w=4,h=2);
+  translate([-32.131,-45.72]) rotate(26.5) translate([0,-d+0.001]) rotate(180) dovetail(w=7,h=0.5);
+  translate([19.05,21.59+d-0.001]) dovetail(h=0.01);
+  translate([-2,19.05+d-0.001]) dovetail(w=7, h=0.3);
+  translate([15,-38.1-d+0.001]) rotate(180) dovetail(w=10,h=0.5);
 }
 
 module dovetail(w=10,h=2) {
