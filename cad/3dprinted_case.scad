@@ -2,7 +2,7 @@ use <functions.scad>
 
 // Change to large number when pruducing end result
 // 256 seems fine for production...
-$fn = $preview ? 16 : 256;
+$fn = $preview ? 16 : 32;
 
 
 // Screws and Encoders are different on each side
@@ -93,11 +93,11 @@ module rims() {
       }
       translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) difference() {offset(delta=-2) rim_outline(); plate_outline();}
       translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) difference() {
-        difference() {
-          rim_placement();
+        rim_placement();
+        offset(delta=plate_inset+plate_case_tolerance) {
+          plate_outline_interconnect();
           translate([-27,-49]) square([10,10]);
         }
-        offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
       }
       translate([0,0,plate_thickness-0.4-0.001]) linear_extrude(0.4) difference() {
       fill() rim_placement();
