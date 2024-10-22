@@ -19,7 +19,7 @@ plate_inset = 1;
 keycap_length = 18.3;
 keycap_tolerance = 0.5;
 // PCB is 4.3
-screw_hole_diameter = 1.85; 
+screw_hole_diameter = 1.8; 
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
 rim_height = 6;
@@ -27,11 +27,12 @@ rim_height = 6;
 case_width = 3;
 case_pcb_tolerance = 0.3;
 pcb_thickness = 1.6;
-bottom_thickness = 3;
-// Below the pcb, pcb+components on back (1.6+2ish)=4ish + 5 for bottom plate = 9
-case_depth = 4+bottom_thickness;
+bottom_thickness = 2;
+// Below the pcb, pcb+components on back (1.6+2ish)=4ish
+case_separation = 4;
+case_depth = case_separation+bottom_thickness;
 // Depth of screw head for countersink I measured 1.2. Higher number to require shorter screws
-screw_head = 4;
+screw_head = 3;
 // 2.1 shrunk down to 2 and 2.3 was still just barely tight
 screw_outer_diameter = 2.4;
 // 4 shrunk too much for my wider head screws
@@ -60,11 +61,14 @@ scale([is_right?-1:1,1,1]) everything();
 // Top level modules
 module real_plate() {
   difference() {
-    linear_extrude(plate_thickness-0.08) offset(delta=plate_inset) plate_outline_interconnect();
+    linear_extrude(plate_thickness-0.48) offset(delta=plate_inset) {
+      plate_outline_interconnect();
+      translate([-27,-49]) square([10,10]);
+    }
     translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
     translate([0,0,switch_snapping]) linear_extrude(plate_thickness+0.001) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
-      screw_hole();
+      cylinder(h=screw_depth+0.001, d=screw_hole_diameter);
     };
     smd_holes();
     encoder_hole();
@@ -87,10 +91,16 @@ module rims() {
         chamfer_extrude(height=rim_height+0.001, chamfer=2, faces="bottom") rim_outline();
         translate([0,0,-0.001]) linear_extrude(height=rim_height+0.002) offset(delta=-2+0.001) rim_outline();
       }
-      translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) difference() {offset(delta=-2) rim_outline(); plate_outline();} // Might need a height tolerance?
-      translate([0,0,-0.001]) linear_extrude(plate_thickness) difference() {
-        rim_placement();
+      translate([0,0,-rim_height]) linear_extrude(rim_height+0.001) difference() {offset(delta=-2) rim_outline(); plate_outline();}
+      translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) difference() {
+        difference() {
+          rim_placement();
+          translate([-27,-49]) square([10,10]);
+        }
         offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
+      }
+      translate([0,0,plate_thickness-0.4-0.001]) linear_extrude(0.4) difference() {
+      fill() rim_placement();
       }
       translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.001) difference() {
         rim_outline();
@@ -103,8 +113,9 @@ module rims() {
     }
     encoder_hole();
     smd_holes();
+    translate([0,0,switch_snapping]) linear_extrude(plate_thickness+0.001) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
-      screw_hole();
+      cylinder(h=screw_depth+0.001, d=screw_hole_diameter);
     };
     usb_holes();
     // trrs port
@@ -128,8 +139,9 @@ module bottom() {
     }
 
     plate_screw_placement() {
-      translate([0,0,start-4-0.001]) cylinder(h=bottom_thickness+4+0.002,d=screw_outer_diameter);
-      translate([0,0,end-screw_head]) cylinder(h=screw_head+0.001,d=screw_head_diameter);
+      translate([0,0,start-case_separation-0.001]) cylinder(h=bottom_thickness+case_separation+0.002,d=screw_outer_diameter);
+      translate([0,0,end-screw_head]) cylinder(h=1.5+0.001, d1=screw_outer_diameter, d2=screw_head_diameter);
+      translate([0,0,end-screw_head+1.5-0.001]) cylinder(h=screw_head-1.5+0.002,d=screw_head_diameter);
     }
   }
 }
@@ -141,14 +153,17 @@ module bottom() {
 module plate_outline() {
   // My keycaps are 18.3mm^2
   offset(delta=keycap_tolerance) key_holes(keycap_length);
+  // Get rid of excess rims in the middle of the keys...
+  translate([-10,-37.965]) square([40,20]);
 }
 
 module plate_outline_interconnect() {
   plate_outline();
   // Dovetails
   d = keycap_length/2+keycap_tolerance+plate_inset;
-  translate([-19.05-d+0.001,4]) rotate(90) dovetail();
-  translate([57.15-6,-29.21-d+0.001]) rotate(180) dovetail(w=4,h=2);
+  translate([76.2+d-0.001,-12.7]) rotate(-90) dovetail(w=20,h=0.3);
+  translate([-19.05-d+0.001,0]) rotate(90) dovetail(w=17);
+  translate([57.15-6,-29.21-d+0.001]) rotate(180) dovetail(w=8,h=2);
   translate([57.15+2,8.89+d-0.001]) dovetail(w=4,h=2);
 }
 
