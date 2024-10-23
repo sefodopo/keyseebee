@@ -2,7 +2,7 @@ use <functions.scad>
 
 // Change to large number when pruducing end result
 // 256 seems fine for production...
-$fn = $preview ? 16 : 32;
+$fn = $preview ? 16 : 256;
 
 
 // Screws and Encoders are different on each side
@@ -61,9 +61,9 @@ scale([is_right?-1:1,1,1]) everything();
 // Top level modules
 module real_plate() {
   difference() {
-    linear_extrude(plate_thickness-0.48) offset(delta=plate_inset) {
-      plate_outline_interconnect();
-      translate([-27,-49]) square([10,10]);
+    linear_extrude(plate_thickness-0.48) difference() {
+      offset(delta=plate_inset) plate_outline_interconnect();
+      weird_rim_cutout();
     }
     translate([0,0,-0.001]) linear_extrude(plate_thickness+0.002) key_holes();
     translate([0,0,switch_snapping]) linear_extrude(plate_thickness+0.001) key_holes(15);
@@ -76,7 +76,6 @@ module real_plate() {
   }
 }
 
-
 module rims() {
   module case_rims() {
     difference() {
@@ -87,6 +86,7 @@ module rims() {
   // We go from top to bottom which is actually bottom to top since the model is flipped :)
   difference() {
     union() {
+      // top rounded part of case
       translate([0,0,-rim_height]) difference() {
         radius = case_width+case_pcb_tolerance;
         minkowski() {
@@ -100,20 +100,26 @@ module rims() {
         }
         translate([0,0,-0.001]) linear_extrude(height=rim_height+0.003)plate_outline();
       }
-      translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) difference() {
-        rim_placement();
-        offset(delta=plate_inset+plate_case_tolerance) {
-          plate_outline_interconnect();
-          translate([-27,-49]) square([10,10]);
+
+      // plate slice
+      translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) {
+        difference() {
+          rim_placement(); 
+          offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
         }
+        offset(delta=-2*plate_case_tolerance) weird_rim_cutout();
       }
       translate([0,0,plate_thickness-0.4-0.001]) linear_extrude(0.4) difference() {
-      fill() rim_placement();
+        fill() rim_placement();
       }
+
+      // pcb slice
       translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.001) difference() {
         rim_outline();
         offset(delta=-case_width) rim_outline();
       }
+
+      // bottom cover slice
       translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(height=bottom_thickness+0.001) difference() {
         rim_outline();
         offset(r=-case_width/2) rim_outline();
@@ -161,12 +167,21 @@ module bottom() {
 module plate_outline() {
   // My keycaps are 18.3mm^2
   offset(delta=keycap_tolerance) key_holes(keycap_length);
-  // Get rid of excess rims in the middle of the keys...
-  translate([-10,-37.965]) square([40,20]);
+}
+
+module weird_rim_cutout() {
+  offset(delta=plate_case_tolerance) intersection() {
+    rim_placement();
+    translate([-10,-37.965]) square([40,20]);
+  }
 }
 
 module plate_outline_interconnect() {
   plate_outline();
+
+  // Add padding for the screw
+  translate([-27,-49]) square([10,10]);
+
   // Dovetails
   d = keycap_length/2+keycap_tolerance+plate_inset;
   translate([76.2+d-0.001,-12.7]) rotate(-90) dovetail(w=20,h=0.3);
