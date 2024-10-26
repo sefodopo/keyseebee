@@ -19,7 +19,7 @@ plate_inset = 1;
 keycap_length = 18.3;
 keycap_tolerance = 0.5;
 // PCB is 4.3
-screw_hole_diameter = 3.2; 
+screw_hole_diameter = 3; 
 screw_depth = plate_thickness - switch_snapping-0.2;
 chamfer_depth = 0.2;
 rim_height = 6;
@@ -88,9 +88,10 @@ module rims() {
     union() {
       // top rounded part of case
       translate([0,0,-rim_height]) difference() {
-        radius = case_width+case_pcb_tolerance;
+        rd = 0.2;
+        radius = case_width+case_pcb_tolerance-rd;
         minkowski() {
-          linear_extrude(height=rim_height-radius+0.001) pcb_outline();
+          linear_extrude(height=rim_height-radius+0.001) offset(delta=rd) pcb_outline();
           translate([0,0,radius]){
             difference() { // semisphere
               sphere(r=radius);
@@ -102,25 +103,26 @@ module rims() {
       }
 
       // plate slice
-      translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.001) {
+      translate([0,0,-0.001]) linear_extrude(plate_thickness-0.4+0.002) {
         difference() {
           rim_placement(); 
           offset(delta=plate_inset+plate_case_tolerance) plate_outline_interconnect();
         }
         offset(delta=-2*plate_case_tolerance) weird_rim_cutout();
       }
-      translate([0,0,plate_thickness-0.4-0.001]) linear_extrude(0.4) difference() {
+      translate([0,0,plate_thickness-0.4-0.001]) linear_extrude(0.4+0.002) difference() {
         fill() rim_placement();
+        plate_outline();
       }
 
       // pcb slice
-      translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.001) difference() {
+      translate([0,0,plate_thickness-0.001]) linear_extrude(case_depth-bottom_thickness+0.002) difference() {
         rim_outline();
         offset(delta=-case_width) rim_outline();
       }
 
       // bottom cover slice
-      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(height=bottom_thickness+0.001) difference() {
+      translate([0,0,plate_thickness+case_depth-bottom_thickness-0.001]) linear_extrude(height=bottom_thickness+0.002) difference() {
         rim_outline();
         offset(r=-case_width/2) rim_outline();
       }
@@ -129,7 +131,7 @@ module rims() {
     smd_holes();
     translate([0,0,switch_snapping]) linear_extrude(plate_thickness+0.001) key_holes(15);
     translate([0,0,plate_thickness-screw_depth]) plate_screw_placement() {
-      cylinder(h=screw_depth+0.001, d=screw_hole_diameter);
+      cylinder(h=screw_depth+0.002, d=screw_hole_diameter);
     };
     usb_holes();
     // trrs port
@@ -185,7 +187,7 @@ module plate_outline_interconnect() {
   // Dovetails
   d = keycap_length/2+keycap_tolerance+plate_inset;
   translate([76.2+d-0.001,-12.7]) rotate(-90) dovetail(w=20,h=0.3);
-  translate([-19.05-d+0.001,0]) rotate(90) dovetail(w=17);
+  translate([-19.05-d+0.001,0]) rotate(90) dovetail(w=17,h=1);
   translate([57.15-6,-29.21-d+0.001]) rotate(180) dovetail(w=8,h=2);
   translate([57.15+2,8.89+d-0.001]) dovetail(w=4,h=2);
   translate([-32.131,-45.72]) rotate(26.5) translate([0,-d+0.001]) rotate(180) dovetail(w=7,h=0.5);
@@ -244,15 +246,9 @@ module key_holes(size=switch_hole) {
 
 // 3d holes
 
-module screw_hole(diameter=screw_hole_diameter, depth=screw_depth, fdiameter=-1, fdepth=0.2) {
-  fd = fdiameter == -1 ? diameter+0.3 : fdiameter;
-  cylinder(h=depth+0.001,d=diameter);
-  translate([0,0,depth-fdepth]) cylinder(h=fdepth+0.001,d1=diameter,d2=fd);
-}
-
 module smd_holes() {
   // smd components
-  translate([-28.165-22,-18.965,plate_thickness-3-0.001]) linear_extrude(3+0.001) square([22,45], center=false);
+  translate([-28.165-22,-18.965,plate_thickness-3-0.001]) linear_extrude(3+0.003) square([22,45], center=false);
 }
 
 module usb_holes() {
@@ -263,7 +259,7 @@ module usb_holes() {
 
 module encoder_hole() {
     encoder_placement() {
-        translate([0,0,plate_thickness-3-0.001]) linear_extrude(3+0.002) square([18.5,15.2], center=true);
+        translate([0,0,plate_thickness-3-0.001]) linear_extrude(3+0.003) square([18.5,15.2], center=true);
         translate([0,0,plate_thickness-7-0.001]) linear_extrude(4+0.002) square([13,12.6],center=true);
         translate([0,0,-rim_height-0.001]) linear_extrude(rim_height+plate_thickness-7+0.001) circle(d=7.5); // Circular shaft
     }
