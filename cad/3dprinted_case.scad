@@ -41,17 +41,43 @@ usb_thickness = 8;
 corner_radius = 3;
 bottom_case_tolerance = plate_case_tolerance;
 
+tenting_angle = 25;
+
 module everything() {
-  if (part == "b")
+  if (part == "b") {
     bottom();
-  else if (part == "t")
+    tent();
+  } else if (part == "t")
     rims();
   else if (part == "p")
     real_plate();
   else {
+    tent();
     bottom();
     rims();
     real_plate();
+  }
+}
+
+module tent() {
+  angle = tenting_angle;
+  outer_width = 136.165+2*(case_width+case_pcb_tolerance);
+  right_offset = 85.835+case_width+case_pcb_tolerance;
+  left_offset = 50.44+case_width+case_pcb_tolerance;
+  start = plate_thickness+case_depth;
+  cylen = outer_width * tan(angle)+0.02;
+  cydia = 5;
+  if (angle >= 5) translate([0,0,start-0.1-0.001]) difference() {
+    linear_extrude(outer_width*tan(angle)+1) rim_outline();
+    translate([-0.001,-0.001,-0.001+right_offset*tan(angle)+1]) rotate([0,angle,0]) linear_extrude(outer_width*tan(angle)+1+0.002) offset(delta=outer_width/cos(angle)-outer_width) rim_outline();
+    if (outer_width*tan(angle)+1 > 10) {
+      hyp = tan(angle)*outer_width-10;
+      #translate([-left_offset-0.001,-75,10]) rotate([0,angle-90,0]) cube([hyp*cos(angle)+1.002,150,sin(angle)*hyp+1.001]);
+    }
+    translate([0,0,-0.001]) plate_screw_placement() {
+      cylinder(h=1,d1=screw_head_diameter, d2=cydia);
+      translate([0,0,1-0.001]) cylinder(h=cylen-1,d=cydia);
+    }
   }
 }
 
