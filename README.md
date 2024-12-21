@@ -1,13 +1,16 @@
-# KeySeeBee
+# KeySeeBee (modified from [TeXitoi/keyseebee](https://github.com/TeXitoi/keyseebee))
 
 ![KeySeeBee](images/keyseebee.jpg)
 
 KeySeeBee is a split ergo keyboard. It is only 2 PCB (so the name)
-with (almost) only SMD components on it. It's only a keyboard, no LED,
-no display, nothing more than keys and USB.
+with (almost) only SMD components on it. It's no longer only a keyboard,
+it now has keys, USB, rotary encoders, and OLEDs.
 
-The firmware is [Keyberon](https://github.com/TeXitoi/keyberon), a
-pure rust firmware.
+The old firmware at [Keyberon](https://github.com/TeXitoi/keyberon), a
+pure rust firmware, has not been ported yet as I wanted more of the functionality
+that QMK provides without having to code some of those advanced features.
+
+QMK firmware for this version is located [here](https://github.com/sefodopo/qmk_firmware/tree/keyseebee).
 
 ## Features
 
@@ -15,8 +18,10 @@ pure rust firmware.
  * USB-C connector on the 2 sides.
  * TRRS cable for connecting the 2 halves (for power and UART communication between the 2 halves).
  * 2 STM32F072 MCU, with hardware USB DFU bootloader and crystal less USB;
- * Only onboard SMD component (except for the switches and TRRS
-   connector).
+ * Only onboard SMD components (except for the switches, TRRS
+   connector, and optional components).
+ * 2 SPI OLED 128x32 3.3V (optional not SMD)
+ * 2 EC11 Rotary Encoder (optional not SMD)
  * [Plate files](cad/) (optional).
 
 ## Inspiration
@@ -26,6 +31,7 @@ pure rust firmware.
  * [Lily58](https://github.com/kata0510/Lily58) for the thumb cluster
  * [Kyria](https://blog.splitkb.com/blog/introducing-the-kyria) for
    "don't be affraid of pinky stagger"
+ * [keyseebee](https://github.com/TeXitoi/keyberon) for initial design without the OLEDs and Encoders and way too many diodes :)
 
 ## Gallery
 
@@ -49,6 +55,8 @@ pure rust firmware.
 
 ![Side view](images/fat-plate.jpg)
 
+### v0.4, build by Sefodopo, Coming Sometime?
+
 ## Bill Of Materials
 
 Price is for 5 keyboards including shipping.
@@ -58,7 +66,6 @@ Price is for 5 keyboards including shipping.
 |[Left PCB](pcb/gerbers/)                                                  |       |  1|Ordered at [JLCPCB](https://jlcpcb.com)|      |
 |[Right PCB](pcb/gerbers/)                                                 |       |  1|Ordered at [JLCPCB](https://jlcpcb.com)|33.14€|
 |[USB-C connector](https://www.aliexpress.com/item/33004501788.html)       |16 pins|  2|                                       | 1.44€|
-|[1N4148WS](https://www.aliexpress.com/item/32774043752.html)              |SOD-323| 44|Price is for 1000                      | 2.82€|
 |[PJ320A TRRS connector](https://www.aliexpress.com/item/4000661212458.html)|      |  2|                                       | 1.01€|
 |[STM32F072CBT6 MCU](https://www.aliexpress.com/item/1005002841528809.html)|LQFP-48|  2|STM32F072C8T6 would also work          | 9.65€|
 |[XC6206P332MR regulator](https://www.aliexpress.com/item/33015891307.html)|SOT-23 |  2|Price is for 50                        | 1.93€|
@@ -77,48 +84,8 @@ About 60€ without switches, keycaps and cables for 5 keyboards
 
 ## Compiling and flashing
 
-Install the complete toolchain and utils:
-
-```shell
-curl https://sh.rustup.rs -sSf | sh
-rustup target add thumbv6m-none-eabi
-rustup component add llvm-tools-preview
-cargo install cargo-binutils
-sudo apt-get install dfu-util
-```
-
-Compile:
-
-```shell
-cd firmware
-cargo objcopy --bin keyseebee --release -- -O binary keyseebee.bin
-```
-
-To flash using dfu-util, launch it with:
-```shell
-dfu-util -w -d 0483:df11 -a 0 -s 0x08000000:leave -D keyseebee.bin
-```
-Then, put the board in dfu mode by pressing BOOT, pressing and releasing
-RESET and releasing BOOT. The upload should began as soon as the
-computer detect the board in dfu mode.
-
-The first time, if the write fail, your flash might be protected. To
-unprotect:
-
-```shell
-dfu-util -d 0483:df11 -a 0 -s 0x08000000:force:unprotect -D keyseebee.bin
-```
-
-Ideally both sides needs to be flashed, but for changes that only affect the layout it's strictly not needed as the side connected with the USB cable will determine the layout. In fact, you can have different layouts stored on each half, meaning you can switch back and forth between two layouts by moving the USB cable between the two halves.
-
+Follow the QMK guides using my branch of qmk_firmware (or copy my code, idk)... I might add more specific steps in the future.
 ## What's the layout
 
-Here is the [empty keyboard-layout-editor](http://www.keyboard-layout-editor.com/##@_name=Keyseebee%3B&@_y:0.35&x:3&sm=cherry&a:7&f:4%3B&=&_x:9%3B&=%3B&@_y:-0.85&x:2%3B&=&_x:1%3B&=&_x:7%3B&=&_x:1%3B&=%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=&_x:13%3B&=%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.8&x:3&f:4%3B&=&_x:9%3B&=%3B&@_y:-0.8500000000000001&x:2%3B&=&_x:1%3B&=&_x:7%3B&=&_x:1%3B&=%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=&_x:13%3B&=%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.7999999999999998&x:3&f:4%3B&=&_x:9%3B&=%3B&@_y:-0.8500000000000001&x:2%3B&=&_x:1%3B&=&_x:7%3B&=&_x:1%3B&=%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=&_x:13%3B&=%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.6499999999999999&x:2.5&f:4%3B&=&_x:10%3B&=%3B&@_rx:4&ry:8.175&y:-4.675&x:-0.5%3B&=%3B&@_y:-0.875&x:0.5%3B&=%3B&@_rx:13&y:-4.675&x:-0.5%3B&=%3B&@_y:-0.875&x:-1.5%3B&=%3B&@_r:30&rx:4&y:-4.825&x:-0.5&f:3%3B&=%3B&@_r:-30&rx:13&y:-4.825&x:-0.5%3B&=) describing the layout.
-
-I use the [bépo layout](https://bepo.fr), so this is [the main layer](http://www.keyboard-layout-editor.com/##@_name=keyseebee%20B%C3%A9po%3B&@_y:0.35&x:3&sm=cherry&f:4%3B&=%0A%0A%0A%2F&%0A%0A%0AP&_x:9%3B&=%0A%0A%0A%C3%B0%0A%0A%0AD%3B&@_y:-0.8500000000000001&x:2&a:6%3B&=%C3%89&_x:1&a:4%3B&=%0A%0A%0A%C5%93%0A%0A%0AO&_x:7&a:6%3B&=V&_x:1%3B&=L%3B&@_y:-0.875&x:5%3B&=%C3%88&_x:5&a:4%3B&=!%0A%5E%3B&@_y:-0.625&x:1%3B&=%0A%0A%0A%7C%0A%0A%0AB&_x:13%3B&=%0A%0A%0A%C4%B3%0A%0A%0AJ%3B&@_y:-0.8500000000000001&a:6%3B&=Tab&_x:15&a:4&f:3%3B&=%0A%0A%0A%C9%99%0A%0A%0AZ%3B&@_y:-0.7999999999999998&x:3&a:6&f:4%3B&=I&_x:9&a:4%3B&=%0A%0A%0A%C3%9F%0A%0A%0AS%3B&@_y:-0.8500000000000001&x:2%3B&=%0A%0A%0A%C3%B9%0A%0A%0AU&_x:1%3B&=%0A%0A%0A%E2%82%AC%0A%0A%0AE&_x:7%3B&=%0A%0A%0A%C3%BE%0A%0A%0AT&_x:1%3B&=%0A%0A%0A%C2%AE%0A%0A%0AR%3B&@_y:-0.875&x:5%3B&=%2F%3B%0A,%0A%0A%E2%80%99&_x:5%3B&=%0A%0A%0A%C2%A9%0A%0A%0AC%3B&@_y:-0.625&x:1%3B&=%0A%0A%0A%C3%A6%0A%0A%0AA&_x:13&a:6%3B&=N%3B&@_y:-0.8500000000000001%3B&=W&_x:15&f:3%3B&=M%3B&@_y:-0.7999999999999998&x:3&a:4&f:4%3B&=%0A%0A%0A%7D%0A%0A%0AX&_x:9&a:6%3B&=G%3B&@_y:-0.8500000000000001&x:2&a:4%3B&=%0A%0A%0A%7D%0A%0A%0AY&_x:1%3B&=%2F:%0A.%0A%0A%E2%80%A6&_x:7&a:6%3B&=Q&_x:1%3B&=H%3B&@_y:-0.875&x:5&a:4%3B&=%0A%0A%0A~%0A%0A%0AK&_x:5%3B&=%3F%0A'%3B&@_y:-0.625&x:1%3B&=%0A%0A%0A%5C%0A%0A%0A%C3%80&_x:13%3B&=%0A%0A%0A%E2%80%A0%0A%0A%0AF%3B&@_y:-0.8500000000000001%3B&=%60%0A%25&_x:15&a:6&f:3%3B&=%C3%87%3B&@_y:-0.6500000000000004&x:2.5&f:4%3B&=GUI&_x:10&a:7%3B&=%3B&@_rx:4&ry:8.175&y:-4.675000000000001&x:-0.5&a:6%3B&=Alt%3B&@_y:-0.875&x:0.5&a:0%3B&=nbsp%0A%E2%90%A3%0A%0A%2F_%0Alayer%201%3B&@_rx:13&y:-4.675000000000001&x:-0.5&a:6%3B&=AltGr%3B&@_y:-0.875&x:-1.5&a:7%3B&=Layer%202%3B&@_r:30&rx:4&y:-4.825000000000001&x:-0.5&a:6&f:3%3B&=Ctrl%3B&@_r:-30&rx:13&y:-4.825000000000001&x:-0.5%3B&=%E2%87%A7) when I type.
-
-The [layer 1](http://www.keyboard-layout-editor.com/##@_name=Keyseebee%20layer%201%3B&@_y:0.35&x:3&sm=cherry&a:7&f:4%3B&=Print%20Scr.&_x:9%3B&=Del.%3B&@_y:-0.85&x:2%3B&=Scroll%20Lock&_x:1%3B&=&_x:7%3B&=%E2%8C%AB&_x:1%3B&=%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=Break&_x:13%3B&=%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.8&x:3&f:4%3B&=Insert%0A%0A%0A%0ACtrl&_x:9%3B&=%E2%96%BC%3B&@_y:-0.8500000000000001&x:2%3B&=Alt&_x:1%3B&=Esc.%0A%0A%0A%0A%E2%87%A7&_x:7%3B&=%E2%97%84&_x:1%3B&=%E2%96%B2%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=Caps%20Lock%3B&@_y:-0.625&x:1%3B&=GUI&_x:13%3B&=%E2%96%BA%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.7999999999999998&x:3&f:4%3B&=Copy&_x:9%3B&=%E2%87%9F%3B&@_y:-0.8500000000000001&x:2%3B&=Cut&_x:1%3B&=Paste&_x:7%3B&=%E2%87%B1&_x:1%3B&=%E2%87%9E%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%E2%8F%8E%3B&@_y:-0.625&x:1%3B&=Undo&_x:13%3B&=%E2%87%B2%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.6499999999999999&x:2.5&f:4%3B&=&_x:10%3B&=%3B&@_rx:4&ry:8.175&y:-4.675&x:-0.5%3B&=%3B&@_y:-0.875&x:0.5&g:true%3B&=%3B&@_rx:13&y:-4.675&x:-0.5&g:false%3B&=%3B&@_y:-0.875&x:-1.5%3B&=Layer%203%3B&@_r:30&rx:4&y:-4.825&x:-0.5&f:3%3B&=%3B&@_r:-30&rx:13&y:-4.825&x:-0.5&f:4%3B&=) is activated by holding `space`.
-
-The [layer 2](http://www.keyboard-layout-editor.com/##@_name=keyseebee%20layer%202%3B&@_y:0.35&x:3&sm=cherry&a:7&f:4%3B&=3&_x:9%3B&=8%3B&@_y:-0.85&x:2%3B&=2&_x:1%3B&=4&_x:7%3B&=7&_x:1%3B&=9%3B&@_y:-0.875&x:5%3B&=5&_x:5%3B&=6%3B&@_y:-0.625&x:1%3B&=1&_x:13%3B&=0%3B&@_y:-0.8500000000000001%3B&=%23&_x:15&f:3%3B&=%C2%B0%3B&@_y:-0.8&x:3&f:4%3B&=%C2%BB&_x:9%3B&=-%3B&@_y:-0.8500000000000001&x:2%3B&=%C2%AB&_x:1%3B&=(&_x:7%3B&=+&_x:1%3B&=%2F%2F%3B&@_y:-0.875&x:5%3B&=)&_x:5%3B&=%2F@%3B&@_y:-0.625&x:1%3B&=%22&_x:13%3B&=*%3B&@_y:-0.8500000000000001%3B&=$&_x:15&f:3%3B&=%2F=%3B&@_y:-0.7999999999999998&x:3&f:4%3B&=%3E&_x:9%3B&=%E2%88%92%3B&@_y:-0.8500000000000001&x:2%3B&=%3C&_x:1%3B&=%5B&_x:7%3B&=%C2%B1&_x:1%3B&=%C3%B7%3B&@_y:-0.875&x:5%3B&=%5D&_x:5%3B&=%5E%3B&@_y:-0.625&x:1%3B&=%E2%80%94&_x:13%3B&=%C3%97%3B&@_y:-0.8500000000000001%3B&=%E2%80%93&_x:15&f:3%3B&=%E2%89%A0%3B&@_y:-0.6499999999999999&x:2.5&f:4%3B&=&_x:10%3B&=%3B&@_rx:4&ry:8.175&y:-4.675&x:-0.5%3B&=%3B&@_y:-0.875&x:0.5&a:5%3B&=%0ASpace%0A%0A%0A%0A%0ACtrl+%3B&@_rx:13&y:-4.675&x:-0.5&a:7%3B&=%3B&@_y:-0.875&x:-1.5&g:true%3B&=%3B&@_r:30&rx:4&y:-4.825&x:-0.5&g:false&f:3%3B&=%3B&@_r:-30&rx:13&y:-4.825&x:-0.5%3B&=) is activated by holding `enter`.
-
-The [layer 3](http://www.keyboard-layout-editor.com/##@_name=Keyseebee%20layer%201%3B&@_y:0.35&x:3&sm=cherry&a:7&f:4%3B&=F4&_x:9%3B&=F9%3B&@_y:-0.85&x:2%3B&=F3&_x:1%3B&=F5&_x:7%3B&=F8&_x:1%3B&=F10%3B&@_y:-0.875&x:5%3B&=F6&_x:5%3B&=F7%3B&@_y:-0.625&x:1%3B&=F2&_x:13%3B&=F11%3B&@_y:-0.8500000000000001%3B&=F1&_x:15%3B&=F12%3B&@_y:-0.8&x:3%3B&=Ctrl&_x:9%3B&=Ctrl%3B&@_y:-0.8500000000000001&x:2%3B&=Alt&_x:1%3B&=%E2%87%A7&_x:7%3B&=%E2%87%A7&_x:1%3B&=Alt%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=GUI&_x:13%3B&=GUI%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.7999999999999998&x:3&f:4%3B&=&_x:9%3B&=%3B&@_y:-0.8500000000000001&x:2%3B&=&_x:1%3B&=&_x:7%3B&=&_x:1%3B&=%3B&@_y:-0.875&x:5%3B&=&_x:5%3B&=%3B&@_y:-0.625&x:1%3B&=&_x:13%3B&=%3B&@_y:-0.8500000000000001%3B&=&_x:15&f:3%3B&=%3B&@_y:-0.6499999999999999&x:2.5&f:4%3B&=&_x:10%3B&=%3B&@_rx:4&ry:8.175&y:-4.675&x:-0.5%3B&=%3B&@_y:-0.875&x:0.5&g:true%3B&=%3B&@_rx:13&y:-4.675&x:-0.5&g:false%3B&=%3B&@_y:-0.875&x:-1.5&g:true%3B&=%3B&@_r:30&rx:4&y:-4.825&x:-0.5&g:false&f:3%3B&=%3B&@_r:-30&rx:13&y:-4.825&x:-0.5%3B&=) is activaded by holding `space` then `enter`.
+Yeah, I'm still figuring it out. I really prefer ZMK and if I can get ZMK working on this keyboard, I'll start using that instead
+and update the layout here for what I like.
